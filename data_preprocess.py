@@ -1,4 +1,5 @@
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
 import jsonlines
 import numpy as np
 
@@ -69,7 +70,14 @@ def pretrain_process():
         f.write(arr.tobytes())
 
 if __name__ == "__main__":
-    tokenizer = AutoTokenizer.from_pretrained('../../tokenizer', use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct")
     print('tokenizer_size：', len(tokenizer))
-
     pretrain_process()
+
+
+
+
+
+
+
+
