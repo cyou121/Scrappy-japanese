@@ -1,4 +1,4 @@
-#第一种写法（最普通的）
+#selfattention 的第一种写法（最普通的）
 import torch.nn as nn
 import torch.nn.functional as F
 import math
