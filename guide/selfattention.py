@@ -32,3 +32,29 @@ class attention(nn.Module):
 x=torch.randn(2,3,512)
 atten = attention()
 print(atten(x))
+
+
+##########################Tips：
+import torch
+K = torch.randn(1,1,3)
+print(K)
+print("-----")
+print(K.transpose(-1,-2))
+print(K.transpose(-2,-1))
+##########################Tips：
+import torch
+K = torch.randn(2,3)
+Q = torch.randn(3,2)
+print(K @ Q)
+print("-----")
+print(torch.matmul(K, Q))
+##########################Tips：
+import torch
+import torch.nn.functional as F
+K = torch.randn(2,3)
+print(K)
+print(F.softmax(K,dim=-1)) #列维度 相加为1
+print(F.softmax(K,dim=0))  #行维度
+print(torch.softmax(K,dim=-1))
+print(torch.softmax(K,dim=-1))
+
