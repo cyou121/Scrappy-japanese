@@ -11,7 +11,7 @@ class selfattention2(nn.Module):
     def forward(self,x):
         qkv=self.q(x)
         q,k,v = torch.chunk(qkv,3,dim=-1)
-        # q,k,v=torch.split(qkv,self.dim,dim=-1)
+        # q,k,v=torch.split(qkv,self.dim,dim=-1)#这里按维度划分
         attentionweight=torch.softmax(q @ k.transpose(-1,-2) /math.sqrt(self.dim),dim=-1)
         print(attentionweight)
         return attentionweight @ v
