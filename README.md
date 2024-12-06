@@ -1,1 +1,2 @@
-![](.LLM-structure.png)
+![](LLM-structure.png)
+
