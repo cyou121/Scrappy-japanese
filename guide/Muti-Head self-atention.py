@@ -20,13 +20,32 @@ class MutiHeadattention(nn.Module):
         
         mask = torch.full((max_seq_len, max_seq_len), float("-inf"))  
         mask = torch.triu(mask, diagonal=1)  
+        self.k_cache=None
+        self.v_cache=None
+        self.use_kvcache=None
         self.register_buffer("mask", mask)  
 
     def forward(self,x):
         batch_size,seq_len,_ =x.shape
-        q=self.q_proj(x)
-        k=self.k_proj(x)
-        v=self.v_proj(x)
+
+        if self.use_kvcache and self.eval():
+            if self.k_cache and self.v_cache is not None:
+                token=x[:,-1,:]
+                q=torch.cat(torch.zeros_like(x[:, :-1, :]),self.q_proj(token),dim=1)
+                k=torch.cat(self.k_cache,self.k_proj(token),dim=1)
+                v=torch.cat(self.v_cache,self.v_proj(token),dim=1)
+            else:
+                q=self.q_proj(x)
+                k=self.k_proj(x)
+                v=self.v_proj(x)
+            self.k_cache=k
+            self.v_cache=v
+        else:
+            q=self.q_proj(x)
+            k=self.k_proj(x)
+            v=self.v_proj(x)
+
+
         print("1")
         # q: [batch_size,seq_len,hidden_dim]
         # k: [batch_size,seq_len,hidden_dim]
@@ -94,3 +113,11 @@ print("")
 x1 = torch.randint(low=0, high=3, size=(1,1,4,5)) 
 x2 = torch.randint(low=0, high=3, size=(2,3,4,5))
 print((x1@x2.transpose(-1,-2)).shape)
+
+
+x1=torch.randn(1,2,3)
+print(x1)
+x2=torch.randn(1,2,3)
+print(x2)
+token=torch.cat((x1,x2),dim=1)
+print(token)
