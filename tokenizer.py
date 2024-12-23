@@ -1,0 +1,105 @@
+import random
+from tqdm import tqdm
+from transformers import AutoTokenizer
+import json
+from datasets import load_dataset
+from tokenizers import (
+    decoders,
+    models,
+    normalizers,
+    pre_tokenizers,
+    processors,
+    trainers,
+    Tokenizer,
+)
+import os
+
+random.seed(42)
+
+def train_tokenizer():
+    def read_texts_from_jsonl(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                data = json.loads(line)
+                yield data['text']
+
+    data_path = 'train_10.jsonl'
+
+    tokenizer = Tokenizer(models.BPE())
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+    special_tokens = ["<unk>", "<s>", "</s>"]
+
+    trainer = trainers.BpeTrainer(
+        vocab_size=7000,
+        special_tokens=special_tokens,  # 确保这三个token被包含
+        show_progress=True,
+        initial_alphabet=pre_tokenizers.ByteLevel.alphabet()
+    )
+
+    texts = read_texts_from_jsonl(data_path)
+    tokenizer.train_from_iterator(texts, trainer=trainer)
+    tokenizer.decoder = decoders.ByteLevel()
+
+    assert tokenizer.token_to_id("<unk>") == 0
+    assert tokenizer.token_to_id("<s>") == 1
+    assert tokenizer.token_to_id("</s>") == 2
+    tokenizer_dir = "./model/jp7000_tokenizer"
+    os.makedirs(tokenizer_dir, exist_ok=True)
+    tokenizer.save(os.path.join(tokenizer_dir, "tokenizer.json"))
+    tokenizer.model.save("./model/jp7000_tokenizer")
+    config = {
+        "add_bos_token": False,
+        "add_eos_token": False,
+        "add_prefix_space": True,
+        "added_tokens_decoder": {
+            "0": {
+                "content": "<unk>",
+                "lstrip": False,
+                "normalized": False,
+                "rstrip": False,
+                "single_word": False,
+                "special": True
+            },
+            "1": {
+                "content": "<s>",
+                "lstrip": False,
+                "normalized": False,
+                "rstrip": False,
+                "single_word": False,
+                "special": True
+            },
+            "2": {
+                "content": "</s>",
+                "lstrip": False,
+                "normalized": False,
+                "rstrip": False,
+                "single_word": False,
+                "special": True
+            }
+        },
+        "additional_special_tokens": [],
+        "bos_token": "<s>",
+        "clean_up_tokenization_spaces": False,
+        "eos_token": "</s>",
+        "legacy": True,
+        "model_max_length": 1000000000000000019884624838656,
+        "pad_token": None,
+        "sp_model_kwargs": {},
+        "spaces_between_special_tokens": False,
+        "tokenizer_class": "PreTrainedTokenizerFast",
+        "unk_token": "<unk>",
+        "use_default_system_prompt": False,
+        "chat_template": "{% if messages[0]['role'] == 'system' %}{% set system_message = messages[0]['content'] %}{% endif %}{% if system_message is defined %}{{ system_message }}{% endif %}{% for message in messages %}{% set content = message['content'] %}{% if message['role'] == 'user' %}{{ '<s>user\\n' + content + '</s>\\n<s>assistant\\n' }}{% elif message['role'] == 'assistant' %}{{ content + '</s>' + '\\n' }}{% endif %}{% endfor %}"
+    }
+
+    with open(os.path.join(tokenizer_dir, "tokenizer_config.json"), "w", encoding="utf-8") as config_file:
+        json.dump(config, config_file, ensure_ascii=False, indent=4)
+
+    print("Tokenizer training completed and saved.")
+
+
+def main():
+    train_tokenizer()
+    
+if __name__ == '__main__':
+    main()
