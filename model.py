@@ -208,8 +208,6 @@ class TransformerBlock(nn.Module):
         self.layer_id = layer_id
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
-
-        # 无 MoE 时，直接使用普通 FFN
         self.feed_forward = FeedForward(
             dim=args.dim,
             hidden_dim=args.hidden_dim,
